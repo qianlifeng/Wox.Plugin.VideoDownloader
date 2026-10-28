@@ -1,37 +1,30 @@
-import { Context, PublicAPI, Query, WoxImage } from "@wox-launcher/wox-plugin"
+import { parseInput } from "../index"
+
+test("parses a URL and a valid trim range", () => {
+  expect(parseInput("https://example.com/watch?v=1 1:00 2:30")).toEqual({ url: "https://example.com/watch?v=1", start: "1:00", end: "2:30", section: "*1:00-2:30" })
+  expect(parseInput("https://example.com/watch?v=1 1:00 inf").section).toBe("*1:00-inf")
+})
+
+test("rejects incomplete and reversed trim ranges", () => {
+  expect(() => parseInput("https://example.com/watch?v=1 1:00")).toThrow()
+  expect(() => parseInput("https://example.com/watch?v=1 2:30 1:00")).toThrow()
+})
+import { Context, PublicAPI, Query } from "@wox-launcher/wox-plugin"
 import { plugin } from "../index"
 
-test("query", async () => {
+test("SDK offers to install a missing tool", async () => {
+  const originalPath = process.env.PATH
+  process.env.PATH = ""
   const ctx = {} as Context
-  const notify = jest.fn().mockResolvedValue(undefined)
-  const log = jest.fn().mockResolvedValue(undefined)
-  const query = {
-    Id: "1",
-    Env: { ActiveWindowTitle: "", ActiveWindowPid: 0, ActiveBrowserUrl: "", ActiveWindowIcon: {} as WoxImage },
-    RawQuery: "wpm install ",
-    Selection: { Type: "text", Text: "", FilePaths: [] },
-    Type: "input",
-    Search: "",
-    TriggerKeyword: "wpm",
-    Command: "install",
-    IsGlobalQuery(): boolean {
-      return false
-    }
-  } as Query
-
-  await plugin.init(ctx, {
-    PluginDirectory: "",
-    API: {
-      Log: log,
-      Notify: notify
-    } as unknown as PublicAPI
-  })
-  const response = await plugin.query(ctx, query)
-  expect(Array.isArray(response)).toBe(false)
-  if (Array.isArray(response)) throw new Error("Expected QueryResponse")
-  expect(response.Results[0].Title).toBe("Hello World ")
-  const action = response.Results[0].Actions?.[0]
-  if (!action || action.Type === "form") throw new Error("Expected an execute action")
-  await action.Action(ctx, { ResultId: "1", ResultActionId: "1", ContextData: action.ContextData ?? {} })
-  expect(notify).toHaveBeenCalledWith(ctx, "You searched for: ")
+  const api = {
+    GetCacheFolder: jest.fn().mockResolvedValue(process.cwd()),
+    RegisterPluginTool: jest.fn().mockResolvedValue({}),
+    GetSetting: jest.fn(async (_ctx: Context, key: string) => (["ytdlp_path", "ffmpeg_path"].includes(key) ? process.execPath : ""))
+  } as unknown as PublicAPI
+  await plugin.init(ctx, { API: api, PluginDirectory: process.cwd() })
+  const result = await plugin.query(ctx, { Command: "", Search: "bad-url" } as Query)
+  process.env.PATH = originalPath
+  if (Array.isArray(result)) throw new Error("Expected QueryResponse")
+  expect(result.Results[0].Title).toBe("i18n:missing_ytdlp")
+  expect(api.RegisterPluginTool).toHaveBeenCalled()
 })

@@ -1,20 +1,310 @@
 {
-  "Id": "{{.Id}}",
-  "TriggerKeywords": [
-    "{{.TriggerKeyword}}"
-  ],
-  "Name": "{{.Name}}",
-  "Description": "{{.Description}}",
-  "Author": "{{.Author}}",
-  "Version": "0.0.6",
+  "Id": "b8e3d1a4-6c2f-4a9e-8d71-3f5c0a2e9b16",
+  "Name": "i18n:plugin_name",
+  "Author": "qianlifeng",
+  "Version": "1.1.0",
   "MinWoxVersion": "2.4.8",
-  "Runtime": "nodejs",
-  "Website": "{{.Website}}",
-  "Entry": "index.js",
+  "Description": "i18n:plugin_description",
+  "Website": "https://github.com/qianlifeng/Wox.Plugin.VideoDownloader",
   "Icon": "relative:images/app.svg",
-  "SupportedOS": [
-    "windows",
-    "linux",
-    "darwin"
-  ]
+  "TriggerKeywords": ["vd","dl"],
+  "SupportedOS": ["windows", "linux", "darwin"],
+  "Commands": [
+    {
+      "Command": "update",
+      "Description": "i18n:cmd_update"
+    }
+  ],
+  "Features": [
+    {
+      "Name": "ignoreAutoScore"
+    }
+  ],
+  "SettingDefinitions": [
+    {
+      "Type": "head",
+      "Value": {
+        "Content": "i18n:section_download"
+      }
+    },
+    {
+      "Type": "textbox",
+      "Value": {
+        "Key": "download_path",
+        "Label": "i18n:setting_download_path",
+        "Tooltip": "i18n:setting_download_path_tip",
+        "DefaultValue": "",
+        "Style": {
+          "Width": 420
+        }
+      },
+      "IsPlatformSpecific": true
+    },
+    {
+      "Type": "select",
+      "Value": {
+        "Key": "preferred_video_format",
+        "Label": "i18n:setting_video_format",
+        "DefaultValue": "mp4",
+        "Options": [
+          {
+            "Label": "mp4",
+            "Value": "mp4"
+          },
+          {
+            "Label": "mkv",
+            "Value": "mkv"
+          },
+          {
+            "Label": "webm",
+            "Value": "webm"
+          },
+          {
+            "Label": "mov",
+            "Value": "mov"
+          }
+        ]
+      }
+    },
+    {
+      "Type": "select",
+      "Value": {
+        "Key": "preferred_audio_format",
+        "Label": "i18n:setting_audio_format",
+        "DefaultValue": "mp3",
+        "Options": [
+          {
+            "Label": "mp3",
+            "Value": "mp3"
+          },
+          {
+            "Label": "m4a",
+            "Value": "m4a"
+          },
+          {
+            "Label": "opus",
+            "Value": "opus"
+          },
+          {
+            "Label": "flac",
+            "Value": "flac"
+          },
+          {
+            "Label": "wav",
+            "Value": "wav"
+          },
+          {
+            "Label": "aac",
+            "Value": "aac"
+          }
+        ]
+      }
+    },
+    {
+      "Type": "head",
+      "Value": {
+        "Content": "i18n:section_cookies"
+      }
+    },
+    {
+      "Type": "textbox",
+      "Value": {
+        "Key": "cookie_file_path",
+        "Label": "i18n:setting_cookie_path",
+        "Tooltip": "i18n:setting_cookie_path_tip",
+        "DefaultValue": "",
+        "Style": {
+          "Width": 420
+        }
+      },
+      "IsPlatformSpecific": true
+    },
+    {
+      "Type": "head",
+      "Value": {
+        "Content": "i18n:section_trim"
+      }
+    },
+    {
+      "Type": "select",
+      "Value": {
+        "Key": "trim_mode",
+        "Label": "i18n:setting_trim_mode",
+        "Tooltip": "i18n:setting_trim_mode_tip",
+        "DefaultValue": "off",
+        "Options": [
+          {
+            "Label": "i18n:trim_off",
+            "Value": "off"
+          },
+          {
+            "Label": "i18n:trim_post",
+            "Value": "post"
+          },
+          {
+            "Label": "i18n:trim_native",
+            "Value": "native"
+          }
+        ]
+      }
+    }
+  ],
+  "I18n": {
+    "en_US": {
+      "plugin_name": "Video Downloader",
+      "plugin_description": "Download videos and audio from 1000+ sites with yt-dlp",
+      "cmd_update": "Update the bundled or detected yt-dlp binary",
+      "section_download": "Download",
+      "section_tools": "Tools",
+      "section_cookies": "Cookies",
+      "section_trim": "Video trimming",
+      "setting_download_path": "Download folder",
+      "setting_download_path_tip": "Leave empty to use the user Downloads folder.",
+      "setting_sorting": "Sort formats by",
+      "setting_video_format": "Preferred video container",
+      "setting_audio_format": "Preferred audio format",
+      "setting_auto_open": "Open the download folder after success",
+      "setting_overwrite": "Overwrite existing files",
+      "setting_ytdlp_path": "yt-dlp path",
+      "setting_ytdlp_path_tip": "Optional. Leave empty to auto-detect or download yt-dlp.",
+      "setting_ffmpeg_path": "FFmpeg path",
+      "setting_ffmpeg_path_tip": "Optional. File or folder that contains ffmpeg.",
+      "setting_use_cookies": "Use a cookies.txt file",
+      "setting_cookie_path": "cookies.txt path",
+      "setting_cookie_path_tip": "Netscape-format cookies file for sites that require login.",
+      "setting_trim_mode": "Trim mode",
+      "setting_trim_mode_tip": "Use: vd <url> 1:00 2:30. Off ignores start/end times.",
+      "setting_delete_original": "Delete the original file after a successful trim",
+      "sort_resolution": "Resolution",
+      "sort_size": "File size",
+      "sort_bitrate": "Total bitrate",
+      "sort_fps": "FPS",
+      "trim_off": "Off",
+      "trim_post": "Download then trim",
+      "trim_native": "Native section download",
+      "hint_title": "Paste a video URL",
+      "hint_subtitle": "Download path: %s",
+      "hint_usage": "Example: vd https://youtu.be/xxxx",
+      "hint_trim": "Optional trim: vd <url> 1:00 2:30",
+      "invalid_url": "This does not look like a video URL",
+      "invalid_url_sub": "Use a full http(s) link, not just a domain.",
+      "missing_ytdlp": "yt-dlp is not installed",
+      "missing_ytdlp_sub": "Download yt-dlp to get started",
+      "download_ytdlp": "Download yt-dlp",
+      "open_ytdlp": "Open yt-dlp releases",
+      "missing_ffmpeg": "FFmpeg was not found",
+      "missing_ffmpeg_sub": "FFmpeg is required for merging, conversion and trimming",
+      "open_ffmpeg": "Open FFmpeg install guide",
+      "cookie_error": "Cookie file setting needs attention",
+      "trim_disabled": "Video trimming is disabled",
+      "trim_disabled_sub": "Enable a trim mode in plugin settings first",
+      "fetching": "Fetching video information...",
+      "fetching_sub": "Wait a few seconds, then edit the query to refresh",
+      "fetch_error": "Could not extract video information",
+      "empty_formats": "No downloadable formats were found",
+      "best_video": "Best video quality",
+      "best_audio": "Best audio only",
+      "download": "Download",
+      "copy_url": "Copy URL",
+      "open_page": "Open page",
+      "open_folder": "Open download folder",
+      "update_ytdlp": "Update yt-dlp",
+      "update_ytdlp_sub": "Check for a newer yt-dlp release",
+      "updating": "Updating yt-dlp in a new terminal",
+      "downloading": "Starting download in a new terminal",
+      "download_ffmpeg": "Download FFmpeg",
+      "dependency_downloading": "Downloading",
+      "dependency_installed": "Installed successfully",
+      "dependency_failed": "Download failed; select the action to retry",
+      "format_type": "Format",
+      "format_all": "All",
+      "format_video": "Video",
+      "format_audio": "Audio",
+      "group_info": "Video information",
+      "download_starting": "Starting download…",
+      "download_retrying": "Retrying with a fallback format…",
+      "download_processing": "Processing…",
+      "download_finished": "Download complete",
+      "format_best": "Best"
+    },
+    "zh_CN": {
+      "plugin_name": "视频下载",
+      "plugin_description": "用 yt-dlp 从 1000+ 网站下载视频和音频",
+      "cmd_update": "更新已检测到的 yt-dlp",
+      "section_download": "下载",
+      "section_tools": "工具",
+      "section_cookies": "Cookies",
+      "section_trim": "视频裁剪",
+      "setting_download_path": "下载目录",
+      "setting_download_path_tip": "留空则使用用户 Downloads 目录。",
+      "setting_sorting": "格式排序方式",
+      "setting_video_format": "首选视频容器",
+      "setting_audio_format": "首选音频格式",
+      "setting_auto_open": "下载成功后打开目录",
+      "setting_overwrite": "覆盖已存在的文件",
+      "setting_ytdlp_path": "yt-dlp 路径",
+      "setting_ytdlp_path_tip": "可选。留空则自动检测或下载 yt-dlp。",
+      "setting_ffmpeg_path": "FFmpeg 路径",
+      "setting_ffmpeg_path_tip": "可选。填写 ffmpeg 可执行文件或其所在目录。",
+      "setting_use_cookies": "使用 cookies.txt",
+      "setting_cookie_path": "cookies.txt 路径",
+      "setting_cookie_path_tip": "Netscape 格式的 cookies 文件，用于需要登录的网站。",
+      "setting_trim_mode": "裁剪模式",
+      "setting_trim_mode_tip": "用法：vd <url> 1:00 2:30。关闭时忽略起止时间。",
+      "setting_delete_original": "裁剪成功后删除原文件",
+      "sort_resolution": "分辨率",
+      "sort_size": "文件大小",
+      "sort_bitrate": "总码率",
+      "sort_fps": "帧率",
+      "trim_off": "关闭",
+      "trim_post": "先下载再裁剪",
+      "trim_native": "仅下载指定片段",
+      "hint_title": "粘贴视频链接",
+      "hint_subtitle": "下载目录：%s",
+      "hint_usage": "例如：vd https://youtu.be/xxxx",
+      "hint_trim": "可选裁剪：vd <url> 1:00 2:30",
+      "invalid_url": "这不像是有效的视频链接",
+      "invalid_url_sub": "请使用完整的 http(s) 链接，而不是只有域名。",
+      "missing_ytdlp": "未检测到 yt-dlp",
+      "missing_ytdlp_sub": "下载 yt-dlp 后即可开始使用",
+      "download_ytdlp": "下载 yt-dlp",
+      "open_ytdlp": "打开 yt-dlp 发布页",
+      "missing_ffmpeg": "未检测到 FFmpeg",
+      "missing_ffmpeg_sub": "合并、转换和裁剪需要 FFmpeg",
+      "open_ffmpeg": "打开 FFmpeg 安装说明",
+      "cookie_error": "Cookie 文件设置有问题",
+      "trim_disabled": "视频裁剪已关闭",
+      "trim_disabled_sub": "请先在插件设置中启用裁剪模式",
+      "fetching": "正在获取视频信息...",
+      "fetching_sub": "请稍等几秒，然后改一下查询内容以刷新",
+      "fetch_error": "无法解析视频信息",
+      "empty_formats": "没有找到可下载的格式",
+      "best_video": "最佳画质",
+      "best_audio": "最佳音频",
+      "download": "下载",
+      "copy_url": "复制链接",
+      "open_page": "打开页面",
+      "open_folder": "打开下载目录",
+      "update_ytdlp": "更新 yt-dlp",
+      "update_ytdlp_sub": "检查并更新 yt-dlp",
+      "updating": "正在新终端中更新 yt-dlp",
+      "downloading": "正在新终端中开始下载",
+      "download_ffmpeg": "下载 FFmpeg",
+      "dependency_downloading": "正在下载",
+      "dependency_installed": "安装完成",
+      "dependency_failed": "下载失败，可再次操作重试",
+      "format_type": "格式",
+      "format_all": "全部",
+      "format_video": "视频",
+      "format_audio": "音频",
+      "group_info": "视频信息",
+      "download_starting": "正在开始下载…",
+      "download_retrying": "正在使用备用格式重试…",
+      "download_processing": "正在处理…",
+      "download_finished": "下载完成",
+      "format_best": "最佳"
+    }
+  },
+  "Runtime": "nodejs",
+  "Entry": "index.js"
 }

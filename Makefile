@@ -1,6 +1,6 @@
 .PHONY: help init check-init check-dev-deps install reinstall clean lint format build test package dev
 
-PLUGIN_NAME := {{.Name}}
+PLUGIN_NAME := videoDownloader
 
 DIST_DIR := dist
 SRC_DIR := src
@@ -29,7 +29,7 @@ init:
 	$(PYTHON) scripts/init-wox-project.py
 
 check-init:
-	@$(PYTHON) scripts/init-wox-project.py --check-initialized
+	@node -e "JSON.parse(require('fs').readFileSync('plugin.json', 'utf8'))"
 
 check-dev-deps:
 	@node -e 'const missing = []; for (const name of ["eslint", "prettier", "jest", "@vercel/ncc", "@babel/cli", "nodemon"]) { try { require.resolve(name); } catch { missing.push(name); } } if (missing.length) { console.error("Development dependencies are not installed. Run '\''make install'\'' first."); console.error("Missing packages: " + missing.join(", ")); process.exit(1); }'
