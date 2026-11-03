@@ -69,14 +69,12 @@ jobs:
 
           echo "Updated to SDK $NEW_SDK_VERSION and Plugin version $NEW_PLUGIN_VERSION_CLEAN"
 
-      - name: Validate updated template
+      - name: Validate updated plugin
         if: steps.check_update.outputs.has_update == 'true'
         run: |
-          python3 scripts/test-scaffold.py
           TEMP_PROJECT=$(mktemp -d)
           tar --exclude=.git --exclude=node_modules -cf - . | tar -xf - -C "$TEMP_PROJECT"
           cd "$TEMP_PROJECT"
-          printf 'Example Plugin\nExample description\nexample\nExample author\n\ny\n' | make init
           pnpm install --frozen-lockfile
           make test
           make package
