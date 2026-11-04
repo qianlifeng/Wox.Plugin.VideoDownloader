@@ -2,8 +2,8 @@
   "Id": "b8e3d1a4-6c2f-4a9e-8d71-3f5c0a2e9b16",
   "Name": "i18n:plugin_name",
   "Author": "qianlifeng",
-  "Version": "1.1.0",
-  "MinWoxVersion": "2.4.8",
+  "Version": "1.1.1",
+  "MinWoxVersion": "2.5.0",
   "Description": "i18n:plugin_description",
   "Website": "https://github.com/qianlifeng/Wox.Plugin.VideoDownloader",
   "Icon": "relative:images/app.svg",
@@ -28,7 +28,7 @@
       }
     },
     {
-      "Type": "textbox",
+      "Type": "dirPath",
       "Value": {
         "Key": "download_path",
         "Label": "i18n:setting_download_path",
@@ -39,6 +39,14 @@
         }
       },
       "IsPlatformSpecific": true
+    },
+    {
+      "Type": "checkbox",
+      "Value": {
+        "Key": "auto_open_folder",
+        "Label": "i18n:setting_auto_open",
+        "DefaultValue": "true"
+      }
     },
     {
       "Type": "select",
@@ -107,15 +115,13 @@
       }
     },
     {
-      "Type": "textbox",
+      "Type": "filePath",
       "Value": {
         "Key": "cookie_file_path",
         "Label": "i18n:setting_cookie_path",
         "Tooltip": "i18n:setting_cookie_path_tip",
         "DefaultValue": "",
-        "Style": {
-          "Width": 420
-        }
+        "Extensions": ["txt"]
       },
       "IsPlatformSpecific": true
     },
@@ -163,7 +169,7 @@
       "setting_sorting": "Sort formats by",
       "setting_video_format": "Preferred video container",
       "setting_audio_format": "Preferred audio format",
-      "setting_auto_open": "Open the download folder after success",
+      "setting_auto_open": "Open folder after download",
       "setting_overwrite": "Overwrite existing files",
       "setting_ytdlp_path": "yt-dlp path",
       "setting_ytdlp_path_tip": "Optional. Leave empty to auto-detect or download yt-dlp.",
@@ -173,7 +179,7 @@
       "setting_cookie_path": "cookies.txt path",
       "setting_cookie_path_tip": "Netscape-format cookies file for sites that require login.",
       "setting_trim_mode": "Trim mode",
-      "setting_trim_mode_tip": "Use: vd <url> 1:00 2:30. Off ignores start/end times.",
+      "setting_trim_mode_tip": "Use: vd <url> 1:00 2:30. Enable trimming before entering a time range.",
       "setting_delete_original": "Delete the original file after a successful trim",
       "sort_resolution": "Resolution",
       "sort_size": "File size",
@@ -188,6 +194,8 @@
       "hint_trim": "Optional trim: vd <url> 1:00 2:30",
       "invalid_url": "This does not look like a video URL",
       "invalid_url_sub": "Use a full http(s) link, not just a domain.",
+      "invalid_trim": "Invalid trim range",
+      "invalid_trim_range": "Use a start and end time, for example 1:00 2:30.",
       "missing_ytdlp": "yt-dlp is not installed",
       "missing_ytdlp_sub": "Download yt-dlp to get started",
       "download_ytdlp": "Download yt-dlp",
@@ -196,6 +204,7 @@
       "missing_ffmpeg_sub": "FFmpeg is required for merging, conversion and trimming",
       "open_ffmpeg": "Open FFmpeg install guide",
       "cookie_error": "Cookie file setting needs attention",
+      "cookie_file_missing": "cookies.txt not found",
       "trim_disabled": "Video trimming is disabled",
       "trim_disabled_sub": "Enable a trim mode in plugin settings first",
       "fetching": "Fetching video information...",
@@ -216,15 +225,27 @@
       "dependency_downloading": "Downloading",
       "dependency_installed": "Installed successfully",
       "dependency_failed": "Download failed; select the action to retry",
+      "dependency_unsupported": "Unsupported platform or architecture",
+      "dependency_incomplete": "Download was incomplete",
       "format_type": "Format",
       "format_all": "All",
       "format_video": "Video",
       "format_audio": "Audio",
+      "tag_video": "video",
+      "tag_audio": "audio",
       "group_info": "Video information",
       "download_starting": "Starting download…",
       "download_retrying": "Retrying with a fallback format…",
       "download_processing": "Processing…",
       "download_finished": "Download complete",
+      "download_failed": "Download failed — see error details",
+      "download_first_attempt": "First attempt",
+      "download_fallback_attempt": "Fallback attempt",
+      "process_exit_code": "Process exited with code %s",
+      "trim_ffmpeg_required": "FFmpeg is required for trimming",
+      "trim_file_missing": "Could not find the downloaded file for trimming",
+      "ytdlp_updated": "yt-dlp updated",
+      "copy_error": "Copy error details",
       "format_best": "Best"
     },
     "zh_CN": {
@@ -250,7 +271,7 @@
       "setting_cookie_path": "cookies.txt 路径",
       "setting_cookie_path_tip": "Netscape 格式的 cookies 文件，用于需要登录的网站。",
       "setting_trim_mode": "裁剪模式",
-      "setting_trim_mode_tip": "用法：vd <url> 1:00 2:30。关闭时忽略起止时间。",
+      "setting_trim_mode_tip": "用法：vd <url> 1:00 2:30。输入时间范围前请先启用裁剪。",
       "setting_delete_original": "裁剪成功后删除原文件",
       "sort_resolution": "分辨率",
       "sort_size": "文件大小",
@@ -265,6 +286,8 @@
       "hint_trim": "可选裁剪：vd <url> 1:00 2:30",
       "invalid_url": "这不像是有效的视频链接",
       "invalid_url_sub": "请使用完整的 http(s) 链接，而不是只有域名。",
+      "invalid_trim": "裁剪时间范围无效",
+      "invalid_trim_range": "请输入开始和结束时间，例如 1:00 2:30。",
       "missing_ytdlp": "未检测到 yt-dlp",
       "missing_ytdlp_sub": "下载 yt-dlp 后即可开始使用",
       "download_ytdlp": "下载 yt-dlp",
@@ -273,6 +296,7 @@
       "missing_ffmpeg_sub": "合并、转换和裁剪需要 FFmpeg",
       "open_ffmpeg": "打开 FFmpeg 安装说明",
       "cookie_error": "Cookie 文件设置有问题",
+      "cookie_file_missing": "未找到 cookies.txt 文件",
       "trim_disabled": "视频裁剪已关闭",
       "trim_disabled_sub": "请先在插件设置中启用裁剪模式",
       "fetching": "正在获取视频信息...",
@@ -293,15 +317,27 @@
       "dependency_downloading": "正在下载",
       "dependency_installed": "安装完成",
       "dependency_failed": "下载失败，可再次操作重试",
+      "dependency_unsupported": "不支持当前平台或处理器架构",
+      "dependency_incomplete": "下载内容不完整",
       "format_type": "格式",
       "format_all": "全部",
       "format_video": "视频",
       "format_audio": "音频",
+      "tag_video": "视频",
+      "tag_audio": "音频",
       "group_info": "视频信息",
       "download_starting": "正在开始下载…",
       "download_retrying": "正在使用备用格式重试…",
       "download_processing": "正在处理…",
       "download_finished": "下载完成",
+      "download_failed": "下载失败，请查看错误详情",
+      "download_first_attempt": "首次尝试",
+      "download_fallback_attempt": "备用格式重试",
+      "process_exit_code": "进程退出，退出码：%s",
+      "trim_ffmpeg_required": "裁剪需要 FFmpeg",
+      "trim_file_missing": "找不到要裁剪的已下载文件",
+      "ytdlp_updated": "yt-dlp 已更新",
+      "copy_error": "复制错误详情",
       "format_best": "最佳"
     }
   },

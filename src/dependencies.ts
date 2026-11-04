@@ -86,7 +86,9 @@ export function dependencyResult(name: Dependency, api: PublicAPI, cacheFolder: 
               await update(await api.GetTranslation(ctx, "dependency_installed"))
               if (await api.GetUpdatableResult(ctx, resultId)) await api.RefreshQuery(ctx, { PreserveSelectedIndex: true })
             } catch (error) {
-              await update(`${await api.GetTranslation(ctx, "dependency_failed")}: ${String(error)}`)
+              const message = error instanceof Error ? error.message : String(error)
+              const key = message === "Unsupported platform or architecture" ? "dependency_unsupported" : message === "Incomplete download" ? "dependency_incomplete" : ""
+              await update(`${await api.GetTranslation(ctx, "dependency_failed")}: ${key ? await api.GetTranslation(ctx, key) : message}`)
             } finally {
               installing.delete(name)
             }

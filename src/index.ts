@@ -15,7 +15,6 @@ const settingKeys = [
   "sorting_order",
   "preferred_video_format",
   "preferred_audio_format",
-  "auto_open_folder",
   "overwrite_existing_files",
   "cookie_file_path",
   "trim_mode",
@@ -128,7 +127,7 @@ export function parseDownloadProgress(line: string): string {
         .join(" · ")
     : ""
 }
-function runProcess(command: string, args: string[], onProgress: (value: string) => void): Promise<void> {
+function runProcess(ctx: Context, command: string, args: string[], onProgress: (value: string) => void): Promise<void> {
   return new Promise((resolve, reject) => {
     const child = spawn(command, args, { stdio: ["ignore", "pipe", "pipe"], windowsHide: true })
     let output = ""
@@ -142,11 +141,16 @@ function runProcess(command: string, args: string[], onProgress: (value: string)
       }
     })
     let errors = ""
+    child.stderr.setEncoding("utf8")
     child.stderr.on("data", chunk => {
-      errors = (errors + String(chunk)).slice(-4000)
+      errors += String(chunk)
     })
     child.on("error", reject)
-    child.on("close", code => (code === 0 ? resolve() : reject(new Error(errors || `Process exited with code ${code}`))))
+    child.on("close", code => {
+      if (code === 0) resolve()
+      else if (errors) reject(new Error(errors))
+      else void api.GetTranslation(ctx, "process_exit_code").then(label => reject(new Error(label.replace("%s", String(code)))), reject)
+    })
   })
 }
 async function runDownload(
@@ -191,15 +195,20 @@ async function runDownload(
   onProgress("i18n:download_starting")
   try {
     try {
-      await runProcess(ytdlp, [...args, "-f", selector, "--", info.url], onProgress)
-    } catch {
+      await runProcess(ctx, ytdlp, [...args, "-f", selector, "--", info.url], onProgress)
+    } catch (firstError) {
       onProgress("i18n:download_retrying")
-      await runProcess(ytdlp, [...args, "-f", info.isAudio ? "bestaudio/best" : "bestvideo+bestaudio/best", "--", info.url], onProgress)
+      try {
+        await runProcess(ctx, ytdlp, [...args, "-f", info.isAudio ? "bestaudio/best" : "bestvideo+bestaudio/best", "--", info.url], onProgress)
+      } catch (retryError) {
+        const [firstLabel, retryLabel] = await Promise.all([api.GetTranslation(ctx, "download_first_attempt"), api.GetTranslation(ctx, "download_fallback_attempt")])
+        throw new Error(`${firstLabel}:\n${String(firstError)}\n\n${retryLabel}:\n${String(retryError)}`)
+      }
     }
     if (info.section && s.trim_mode === "post") {
-      if (!ffmpeg) throw new Error("FFmpeg is required for trimming")
+      if (!ffmpeg) throw new Error(await api.GetTranslation(ctx, "trim_ffmpeg_required"))
       const outputPath = (await fs.readFile(marker, "utf8")).trim().split(/\r?\n/).pop() || ""
-      if (!outputPath || !(await exists(outputPath))) throw new Error("Could not find the downloaded file for trimming")
+      if (!outputPath || !(await exists(outputPath))) throw new Error(await api.GetTranslation(ctx, "trim_file_missing"))
       const parsed = path.parse(outputPath)
       let trimmed = path.join(parsed.dir, `${parsed.name}_trimmed${parsed.ext}`)
       if (!enabled(s.overwrite_existing_files, true)) {
@@ -213,13 +222,11 @@ async function runDownload(
       if (enabled(s.delete_original_after_trim) && (await exists(trimmed))) await fs.unlink(outputPath)
     }
     onProgress("i18n:download_finished")
-    await api.Notify(ctx, `Download finished: ${dir}`)
-    if (enabled(s.auto_open_folder, true)) open(dir)
-  } catch (error) {
-    onProgress(`Download failed: ${String(error)}`)
-    await api.Notify(ctx, `Download failed: ${String(error)}`)
+    await api.Notify(ctx, `${await api.GetTranslation(ctx, "download_finished")}: ${dir}`)
+    const autoOpen = await api.GetSetting(ctx, "auto_open_folder").catch(() => "false")
+    if (enabled(autoOpen, true)) open(dir)
   } finally {
-    await fs.rm(marker, { force: true })
+    await fs.rm(marker, { force: true }).catch(() => undefined)
   }
 }
 export function formatResults(
@@ -229,9 +236,9 @@ export function formatResults(
   ytdlp: string,
   ffmpeg: string,
   trim: ReturnType<typeof parseInput>,
-  filter = "all",
-  audioLabel = "Audio",
-  videoLabel = "Video"
+  filter: string,
+  audioLabel: string,
+  videoLabel: string
 ): Result[] {
   const rawFormats = (info.formats || (info.format_id ? [info as Format] : [])).filter(f => f.format_id && (f.vcodec !== "none" || f.acodec !== "none"))
   const dimensions = (f: Format): [number, number] => {
@@ -281,13 +288,14 @@ export function formatResults(
     ].filter(Boolean)
     const displayTitle = isAudio ? [audioLabel, bitrate].filter(Boolean).join(" · ") : resolution
     const subtitle = isAudio && bitrate ? details.slice(1).join(" · ") : details.join(" · ")
-    const tails = [isBest ? "i18n:format_best" : "", f.ext].filter(Boolean)
-    return {
+    const format = isAudio ? [f.ext, s.preferred_audio_format || "mp3"].filter(Boolean).join(" → ") : f.ext
+    const tails = [isBest ? (isAudio ? "i18n:tag_audio" : "i18n:tag_video") : "", format?.toLowerCase()].filter(Boolean)
+    const result: Result = {
       Title: displayTitle,
       SubTitle: subtitle,
-      Group: isAudio ? audioLabel : videoLabel,
-      GroupScore: isAudio ? 100 : 200,
-      Score: isAudio ? (isBest ? 5000 : 4000 - index) : isBest ? 10000 : 9000 - index,
+      Group: isBest ? "i18n:format_best" : isAudio ? "i18n:format_audio" : "i18n:format_video",
+      GroupScore: isBest ? 250 : isAudio ? 100 : 200,
+      Score: isBest ? (isAudio ? 9999 : 10000) : isAudio ? 4000 - index : 9000 - index,
       Icon: info.thumbnail ? { ImageType: "url", ImageData: info.thumbnail } : logo,
       IdentityKey: JSON.stringify([url, f.format_id, trim.section]),
       Tails: tails.map(text => ({ Type: "text", Text: text! })),
@@ -301,6 +309,10 @@ export function formatResults(
             if (downloading.has(key)) return
             downloading.add(key)
             let updates = Promise.resolve()
+            const originalActions = result.Actions || []
+            updates = updates.then(async () => {
+              await api.UpdateResult(ctx, { Id: actionContext.ResultId, Preview: { PreviewType: "text", PreviewData: "" }, Actions: originalActions })
+            }).catch(() => undefined)
             const report = (value: string) => {
               updates = updates
                 .then(async () => {
@@ -309,7 +321,22 @@ export function formatResults(
                 .catch(() => undefined)
             }
             void runDownload(ctx, { ...trim, url, format: f, isAudio }, s, ytdlp, ffmpeg, report)
-              .catch(error => report(`Download failed: ${String(error)}`))
+              .catch(async error => {
+                const details = String(error)
+                const copyError = action("i18n:copy_error", icons.copy, async c => {
+                  await api.Copy(c, { type: "text", text: details })
+                })
+                updates = updates.then(async () => {
+                  await api.UpdateResult(ctx, {
+                    Id: actionContext.ResultId,
+                    SubTitle: "i18n:download_failed",
+                    Preview: { PreviewType: "text", PreviewData: details },
+                    Actions: [...originalActions, copyError]
+                  })
+                }).catch(() => undefined)
+                await Promise.all([updates, api.Notify(ctx, await api.GetTranslation(ctx, "download_failed"))])
+              })
+              .catch(() => undefined)
               .finally(() => downloading.delete(key))
           }
         },
@@ -320,6 +347,7 @@ export function formatResults(
         action("i18n:open_folder", icons.folder, async () => open(expand(s.download_path || path.join(os.homedir(), "Downloads"))))
       ]
     }
+    return result
   })
   return results.sort((a, b) => (b.Score || 0) - (a.Score || 0))
 }
@@ -338,7 +366,7 @@ async function resolveQuery(ctx: Context, q: Query): Promise<QueryResponse> {
           action("i18n:update_ytdlp", icons.execute, async c => {
             try {
               await exec(ytdlp, ["-U"])
-              await api.Notify(c, "yt-dlp updated")
+              await api.Notify(c, await api.GetTranslation(c, "ytdlp_updated"))
             } catch (e) {
               await api.Notify(c, `yt-dlp: ${String(e)}`)
             }
@@ -355,11 +383,11 @@ async function resolveQuery(ctx: Context, q: Query): Promise<QueryResponse> {
   try {
     input = parseInput([q.Command, q.Search].filter(Boolean).join(" "))
   } catch {
-    return { Results: [message("i18n:invalid_url", "Invalid trim range")] }
+    return { Results: [message("i18n:invalid_trim", "i18n:invalid_trim_range")] }
   }
   if (!validUrl(input.url)) return { Results: [message("i18n:invalid_url", "i18n:invalid_url_sub")] }
   if (input.section && (!s.trim_mode || s.trim_mode === "off")) return { Results: [message("i18n:trim_disabled", "i18n:trim_disabled_sub")] }
-  if (s.cookie_file_path && !(await exists(expand(s.cookie_file_path)))) return { Results: [message("i18n:cookie_error", "cookies.txt not found")] }
+  if (s.cookie_file_path && !(await exists(expand(s.cookie_file_path)))) return { Results: [message("i18n:cookie_error", "i18n:cookie_file_missing")] }
   const [videoGroup, audioGroup] = await Promise.all([api.GetTranslation(ctx, "format_video"), api.GetTranslation(ctx, "format_audio")])
   const infoRow = (info: Info): Result => {
     const duration =

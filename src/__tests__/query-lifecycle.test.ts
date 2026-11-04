@@ -71,7 +71,7 @@ test.each([false, true])("returns a loading row and updates it after probe (fail
       expect(refreshed.Results[0].Group).toBeUndefined()
       expect(refreshed.Results[0].GroupScore).toBe(300)
       expect(refreshed.Results.some(row => row.IdentityKey?.includes('"v"'))).toBe(true)
-      expect(refreshed.Results.some(row => row.Group === "format_video" && row.GroupScore === 200)).toBe(true)
+      expect(refreshed.Results.some(row => row.Group === "i18n:format_best" && row.GroupScore === 250)).toBe(true)
     }
   } finally {
     await fs.rm(dir, { recursive: true, force: true })
