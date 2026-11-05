@@ -2,7 +2,7 @@
   "Id": "b8e3d1a4-6c2f-4a9e-8d71-3f5c0a2e9b16",
   "Name": "i18n:plugin_name",
   "Author": "qianlifeng",
-  "Version": "0.0.7",
+  "Version": "0.0.8",
   "MinWoxVersion": "2.5.0",
   "Description": "i18n:plugin_description",
   "Website": "https://github.com/qianlifeng/Wox.Plugin.VideoDownloader",
