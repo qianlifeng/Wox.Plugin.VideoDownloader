@@ -1,7 +1,8 @@
 """Apply this template's Node.js integration after syncing the Wox skill."""
 from pathlib import Path
+import sys
 
-skill = Path('.agents/skills/wox-plugin-creator')
+skill = Path(sys.argv[1]) if len(sys.argv) > 1 else Path('.agents/skills/wox-plugin-creator')
 script = skill / 'scripts/scaffold_wox_plugin.py'
 text = script.read_text(encoding='utf-8')
 old = '        apply_placeholders_in_tree(output_dir, values)\n        print(f"Cloned {args.type} template into {output_dir}")'
